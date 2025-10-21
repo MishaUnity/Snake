@@ -5,6 +5,8 @@ import time
 import sys
 import os
 
+import targeting
+
 # Настройка логирования
 logging.basicConfig(
     level=logging.INFO,
@@ -17,11 +19,12 @@ pygame.init()
 WIDTH = 800
 HEIGHT = 600
 CELL_SIZE = 10
-FPS = 15
-TPS = 15
+FPS = 900
 
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Snake Game")
+
+targeting.testWin = WIN
 
 # Цвета
 WHITE = (255, 255, 255)
@@ -49,6 +52,8 @@ change_to = direction
 start_time = time.time()
 score = 0
 max_score = 0
+
+auto_mode = True
 
 # Чтение рекорда
 def read_max_score():
@@ -117,6 +122,8 @@ paused = False
 paused_start_time = 0
 clock = pygame.time.Clock()
 
+targeting.start_search(snake_body, snake_pos, fruit_pos, CELL_SIZE, WIDTH, HEIGHT)
+
 while True:
     current_time = time.time()
     elapsed_time = current_time - start_time
@@ -158,6 +165,9 @@ while True:
                     logging.info("Pressed DOWN")
 
     if not paused:
+        if auto_mode == True:
+            change_to = targeting.get_move_from_buffer()
+
         # Обновление направления (с защитой от разворота на 180°)
         if change_to == "LEFT" and direction != "RIGHT":
             direction = "LEFT"
@@ -193,6 +203,8 @@ while True:
                 max_score = score
             fruit_spawn = False
             start_time = time.time()  # Сброс таймера
+
+            #targeting.start_search(snake_body, snake_pos, fruit_pos, CELL_SIZE, WIDTH, HEIGHT)
         else:
             snake_body.pop()
 
@@ -201,14 +213,21 @@ while True:
             fruit_pos = generate_fruit()
             fruit_spawn = True
 
+            targeting.start_search(snake_body.copy(), snake_pos, fruit_pos, CELL_SIZE, WIDTH, HEIGHT)
+
         # Проверка таймера
-        if elapsed_time >= 15:
+        if elapsed_time >= 150:
             logging.info("Time is over")
             game_over()
 
     # Отрисовка
     WIN.fill(WHITE)
     draw_snake(snake_body)
+    for test in targeting.buffer:
+        pygame.draw.rect(WIN, RED, pygame.Rect(test['pos'][0] * CELL_SIZE + CELL_SIZE / 4, test['pos'][1] * CELL_SIZE + CELL_SIZE / 4, CELL_SIZE / 2, CELL_SIZE / 2))
+    for y in range(len(targeting.testBuffer)):
+        x = targeting.testBuffer[y]
+        pygame.draw.rect(WIN, (0, 255, max(min(255, (1 - y) * 255), 0)), pygame.Rect(x[0] * CELL_SIZE + CELL_SIZE / 4, x[1] * CELL_SIZE + CELL_SIZE / 4, CELL_SIZE / 3, CELL_SIZE / 3))
     draw_fruit(fruit_pos)
     draw_timer(elapsed_time if not paused else 0)
     draw_score(score, max_score)
