@@ -20,6 +20,7 @@ WIDTH = 800
 HEIGHT = 600
 CELL_SIZE = 25
 FPS = 10
+TIME_LIMIT = 30
 
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Snake Game")
@@ -246,7 +247,7 @@ while True:
             targeting.start_search(snake_body.copy(), snake_pos, fruit_pos, CELL_SIZE, WIDTH, HEIGHT)
 
         # Проверка таймера
-        if elapsed_time >= 150:
+        if elapsed_time >= TIME_LIMIT:
             logging.info("Time is over")
             game_over()
 
