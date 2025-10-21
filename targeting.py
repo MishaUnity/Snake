@@ -111,8 +111,9 @@ def calculate_weight(map, pos, target, index):
             if not (len(map) <= x or len(map[0]) <= y or x < 0 or y < 0):
                 barrier_count = barrier_count - map[x, y] * min(distance / 5, 1)
 
-    return {'pos': pos, 'weight': distance + barrier_count, 'index': index}
-    #return {'pos': pos, 'weight': distance, 'index': index}
+    #weight = distance + barrier_count
+    weight = distance
+    return {'pos': pos, 'weight': weight, 'index': index}
 
 # Перевод данных игры в нормальный для алгоритма вид
 def generate_body(snake_body, cell_size):

@@ -18,8 +18,8 @@ pygame.init()
 # Константы
 WIDTH = 800
 HEIGHT = 600
-CELL_SIZE = 10
-FPS = 900
+CELL_SIZE = 25
+FPS = 10
 
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Snake Game")
@@ -35,6 +35,14 @@ GRAY = (200, 200, 200)
 # Игровые переменные
 snake_pos = [100, 50]
 snake_body = [[100, 50], [90, 50], [80, 50]]
+
+body_sprite = pygame.transform.scale(pygame.image.load("body.png"), (CELL_SIZE, CELL_SIZE))
+head_sprite = pygame.transform.scale(pygame.image.load("head.png"), (CELL_SIZE, CELL_SIZE))
+food_sprite = pygame.transform.scale(pygame.image.load("food.png"), (CELL_SIZE, CELL_SIZE))
+nav_sprite = pygame.transform.scale(pygame.image.load("nav.png"), (CELL_SIZE, CELL_SIZE))
+cell_sprite = []
+for i in range(4):
+    cell_sprite.append(pygame.transform.scale(pygame.image.load("cell_" + str(i) + ".png"), (CELL_SIZE, CELL_SIZE)))
 
 # Генерация фрукта в пикселях
 def generate_fruit():
@@ -73,10 +81,21 @@ def save_max_score(score_val):
 # Функции отрисовки
 def draw_snake(snake_body):
     for pos in snake_body:
-        pygame.draw.rect(WIN, BLACK, pygame.Rect(pos[0], pos[1], CELL_SIZE, CELL_SIZE))
+        if pos == snake_pos:
+            WIN.blit(head_sprite, pos)
+            continue
+        WIN.blit(body_sprite, pos)
 
 def draw_fruit(fruit_pos):
-    pygame.draw.rect(WIN, RED, pygame.Rect(fruit_pos[0], fruit_pos[1], CELL_SIZE, CELL_SIZE))
+    WIN.blit(food_sprite, fruit_pos)
+
+def draw_grid():
+    random.seed("Snake")
+    for x in range(WIDTH // CELL_SIZE):
+        for y in range(HEIGHT // CELL_SIZE):
+            WIN.blit(cell_sprite[random.randrange(0, len(cell_sprite))], (x * CELL_SIZE, y * CELL_SIZE))
+    random.seed()
+
 
 def draw_timer(seconds):
     font = pygame.font.SysFont(None, 36)
@@ -88,6 +107,11 @@ def draw_score(score, max_score):
     font = pygame.font.SysFont(None, 36)
     text = font.render(f'Score: {score} Max Score: {max_score}', True, BLACK)
     WIN.blit(text, (WIDTH - 350, 10))
+
+def draw_auto():
+    font = pygame.font.SysFont(None, 32)
+    text = font.render("AUTOPILOT", True, BLACK)
+    WIN.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 + 25))
 
 def draw_pause():
     font = pygame.font.SysFont(None, 48)
@@ -164,6 +188,12 @@ while True:
                     change_to = "DOWN"
                     logging.info("Pressed DOWN")
 
+                if event.key == pygame.K_a:
+                    auto_mode = not auto_mode
+                    if auto_mode:
+                        targeting.buffer.clear()
+                        targeting.start_search(snake_body.copy(), snake_pos, fruit_pos, CELL_SIZE, WIDTH, HEIGHT)
+
     if not paused:
         if auto_mode == True:
             change_to = targeting.get_move_from_buffer()
@@ -222,18 +252,20 @@ while True:
 
     # Отрисовка
     WIN.fill(WHITE)
+    draw_grid()
     draw_snake(snake_body)
-    for test in targeting.buffer:
-        pygame.draw.rect(WIN, RED, pygame.Rect(test['pos'][0] * CELL_SIZE + CELL_SIZE / 4, test['pos'][1] * CELL_SIZE + CELL_SIZE / 4, CELL_SIZE / 2, CELL_SIZE / 2))
-    for y in range(len(targeting.testBuffer)):
-        x = targeting.testBuffer[y]
-        pygame.draw.rect(WIN, (0, 255, max(min(255, (1 - y) * 255), 0)), pygame.Rect(x[0] * CELL_SIZE + CELL_SIZE / 4, x[1] * CELL_SIZE + CELL_SIZE / 4, CELL_SIZE / 3, CELL_SIZE / 3))
+    if auto_mode:
+        for nav in targeting.buffer:
+            WIN.blit(nav_sprite, (nav['pos'][0] * CELL_SIZE, nav['pos'][1] * CELL_SIZE))
     draw_fruit(fruit_pos)
     draw_timer(elapsed_time if not paused else 0)
     draw_score(score, max_score)
 
     if paused:
         draw_pause()
+
+    if auto_mode:
+        draw_auto()
 
     pygame.display.flip()
     clock.tick(FPS)
