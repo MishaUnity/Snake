@@ -106,13 +106,13 @@ def calculate_weight(map, pos, target, index):
     distance = numpy.sqrt((pos[0] - target[0])**2 + (pos[1] - target[1])**2)
 
     barrier_count = 0
-    for x in range(pos[0] - 4, pos[0] + 4):
-        for y in range(pos[1] - 4, pos[1] + 4):
+    for x in range(pos[0] - 2, pos[0] + 2):
+        for y in range(pos[1] - 2, pos[1] + 2):
             if not (len(map) <= x or len(map[0]) <= y or x < 0 or y < 0):
                 barrier_count = barrier_count - map[x, y] * min(distance / 5, 1)
 
-    #weight = distance + barrier_count
-    weight = distance
+    weight = distance + barrier_count * 0.5
+    #weight = distance
     return {'pos': pos, 'weight': weight, 'index': index}
 
 # Перевод данных игры в нормальный для алгоритма вид

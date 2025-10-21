@@ -47,10 +47,14 @@ for i in range(4):
 
 # Генерация фрукта в пикселях
 def generate_fruit():
-    return [
-        random.randrange(1, WIDTH // CELL_SIZE) * CELL_SIZE,
-        random.randrange(1, HEIGHT // CELL_SIZE) * CELL_SIZE
-    ]
+    result = [0, 0]
+    while True:
+        result = [
+            random.randrange(1, WIDTH // CELL_SIZE) * CELL_SIZE,
+            random.randrange(1, HEIGHT // CELL_SIZE) * CELL_SIZE
+        ]
+        if not result in snake_body:
+            return result
 
 fruit_pos = generate_fruit()
 fruit_spawn = True
@@ -97,10 +101,9 @@ def draw_grid():
             WIN.blit(cell_sprite[random.randrange(0, len(cell_sprite))], (x * CELL_SIZE, y * CELL_SIZE))
     random.seed()
 
-
 def draw_timer(seconds):
     font = pygame.font.SysFont(None, 36)
-    time_left = max(0, 15 - seconds)
+    time_left = max(0, TIME_LIMIT - seconds)
     text = font.render(f'Time left: {time_left:.1f}', True, BLACK)
     WIN.blit(text, (10, 10))
 
