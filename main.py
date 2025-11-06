@@ -31,11 +31,16 @@ targeting.testWin = WIN
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
+DARK_RED = (210, 65, 65)
 GRAY = (200, 200, 200)
 
 # Игровые переменные
 snake_pos = [100, 50]
 snake_body = [[100, 50], [90, 50], [80, 50]]
+
+star_sprite = pygame.transform.scale(pygame.image.load("star.png"), (30, 30))
+star_red_sprite = pygame.transform.scale(pygame.image.load("star_red.png"), (30, 30))
+cup_sprite = pygame.transform.scale(pygame.image.load("cup.png"), (30, 30))
 
 body_sprite = pygame.transform.scale(pygame.image.load("body.png"), (CELL_SIZE, CELL_SIZE))
 head_sprite = pygame.transform.scale(pygame.image.load("head.png"), (CELL_SIZE, CELL_SIZE))
@@ -109,8 +114,10 @@ def draw_timer(seconds):
 
 def draw_score(score, max_score):
     font = pygame.font.SysFont(None, 36)
-    text = font.render(f'Score: {score} Max Score: {max_score}', True, BLACK)
+    text = font.render(f'    {score}            {max_score}', True, BLACK)
     WIN.blit(text, (WIDTH - 350, 10))
+    WIN.blit(star_sprite, (WIDTH - 360, 5))
+    WIN.blit(cup_sprite, (WIDTH - 260, 5))
 
 def draw_auto():
     font = pygame.font.SysFont(None, 32)
@@ -126,8 +133,11 @@ def game_over():
     logging.info("Game is over")
     save_max_score(max_score)
     font = pygame.font.SysFont(None, 60)
+    best = font.render(f'{score}', True, DARK_RED)
+    WIN.blit(best, (WIDTH // 2 - best.get_width() // 2 + 20, HEIGHT // 2 - 90))
+    WIN.blit(star_red_sprite, (WIDTH // 2 - best.get_width() // 2 - 20, HEIGHT // 2 - 90))
     text = font.render("GAME OVER", True, RED)
-    WIN.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - 30))
+    WIN.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - 50))
     pygame.display.flip()
     time.sleep(2)  # Показать надпись 2 секунды
     pygame.quit()
@@ -181,16 +191,12 @@ while True:
             if not paused:
                 if event.key == pygame.K_LEFT:
                     change_to = "LEFT"
-                    logging.info("Pressed LEFT")
                 elif event.key == pygame.K_RIGHT:
                     change_to = "RIGHT"
-                    logging.info("Pressed RIGHT")
                 elif event.key == pygame.K_UP:
                     change_to = "UP"
-                    logging.info("Pressed UP")
                 elif event.key == pygame.K_DOWN:
                     change_to = "DOWN"
-                    logging.info("Pressed DOWN")
 
                 if event.key == pygame.K_a:
                     auto_mode = not auto_mode
@@ -215,12 +221,16 @@ while True:
         # Движение змейки
         if direction == "LEFT":
             snake_pos[0] -= CELL_SIZE
+            logging.info("Move LEFT  | Snake (" + str(snake_pos[0]) + "; " + str(snake_pos[1]) + ")")
         elif direction == "RIGHT":
             snake_pos[0] += CELL_SIZE
+            logging.info("Move RIGHT | Snake (" + str(snake_pos[0]) + "; " + str(snake_pos[1]) + ")")
         elif direction == "UP":
             snake_pos[1] -= CELL_SIZE
+            logging.info("Move UP    | Snake (" + str(snake_pos[0]) + "; " + str(snake_pos[1]) + ")")
         elif direction == "DOWN":
             snake_pos[1] += CELL_SIZE
+            logging.info("Move DOWN  | Snake (" + str(snake_pos[0]) + "; " + str(snake_pos[1]) + ")")
 
         # Проверка столкновений
         if check_collisions(snake_pos, snake_body):
@@ -237,8 +247,6 @@ while True:
                 max_score = score
             fruit_spawn = False
             start_time = time.time()  # Сброс таймера
-
-            #targeting.start_search(snake_body, snake_pos, fruit_pos, CELL_SIZE, WIDTH, HEIGHT)
         else:
             snake_body.pop()
 
@@ -247,7 +255,8 @@ while True:
             fruit_pos = generate_fruit()
             fruit_spawn = True
 
-            targeting.start_search(snake_body.copy(), snake_pos, fruit_pos, CELL_SIZE, WIDTH, HEIGHT)
+            if auto_mode:
+                targeting.start_search(snake_body.copy(), snake_pos, fruit_pos, CELL_SIZE, WIDTH, HEIGHT)
 
         # Проверка таймера
         if elapsed_time >= TIME_LIMIT:
